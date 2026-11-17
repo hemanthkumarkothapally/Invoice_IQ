@@ -1,0 +1,47 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:u="sap.ui.unified"
+    xmlns:core="sap.ui.core">
+
+    <Dialog
+        id="uploadDialog"
+        title="{i18n>uploadTitle}"
+        contentWidth="30rem"
+        busy="{ui>/uploading}"
+        busyIndicatorDelay="0">
+
+        <content>
+            <VBox class="sapUiMediumMargin">
+                <Text text="{i18n>uploadHint}" class="sapUiSmallMarginBottom" />
+                <u:FileUploader
+                    id="fileUploader"
+                    name="invoiceFile"
+                    width="100%"
+                    tooltip="{i18n>uploadTooltip}"
+                    placeholder="{i18n>uploadPlaceholder}"
+                    fileType="pdf,png,jpg,jpeg,tiff"
+                    maximumFileSize="20"
+                    typeMissmatch=".onTypeMismatch"
+                    fileSizeExceed=".onFileSizeExceed"
+                    change=".onFileSelected" />
+                <MessageStrip
+                    class="sapUiSmallMarginTop"
+                    visible="{= !!${ui>/uploadError} }"
+                    type="Error"
+                    text="{ui>/uploadError}" />
+            </VBox>
+        </content>
+
+        <beginButton>
+            <Button
+                text="{i18n>upload}"
+                type="Emphasized"
+                enabled="{= !!${ui>/selectedFileName} }"
+                press=".onUploadConfirm" />
+        </beginButton>
+        <endButton>
+            <Button text="{i18n>cancel}" press=".onUploadCancel" />
+        </endButton>
+    </Dialog>
+
+</core:FragmentDefinition>

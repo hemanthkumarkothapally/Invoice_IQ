@@ -1,0 +1,86 @@
+{
+  "name": "Invoice_IQ",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@cap-js/hana": "^2",
+    "@sap-cloud-sdk/http-client": "^4.5.1",
+    "@sap/cds": "^9.8.4",
+    "@sap/xssec": "^4.13.0",
+    "express": "^4",
+    "form-data": "^4.0.5",
+    "pdf-parse": "^1.1.1",
+    "@sap-cloud-sdk/connectivity": "^4",
+    "@sap-cloud-sdk/resilience": "^4"
+  },
+  "devDependencies": {
+    "@cap-js/cds-test": "^0.4.1",
+    "@cap-js/sqlite": "^2",
+    "@sap/cds-dk": "^9.8.3",
+    "jest": "^30.3.0",
+    "mbt": "^1.2.29",
+    "rimraf": "^5.0.5",
+    "cds-plugin-ui5": "^0.17.0"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "watch": "cds watch",
+    "mock": "DOX_MOCK=true S4_MOCK=true cds watch",
+    "build": "rimraf resources mta_archives && mbt build --mtar archive",
+    "deploy": "cf deploy mta_archives/archive.mtar --retries 1",
+    "watch-invoice_iq_ui": "cds watch --open invoiceiqui/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "undeploy": "cf undeploy Invoice_IQ --delete-services --delete-service-keys --delete-service-brokers",
+    "mock:s4": "S4_MOCK=true cds watch --profile hybrid",
+    "hybrid": "cds watch --profile hybrid"
+  },
+  "workspaces": [
+    "app/*"
+  ],
+  "cds": {
+    "requires": {
+      "destinations": true,
+      "auth": {
+        "kind": "mocked",
+        "[development]": {
+          "kind": "mocked"
+        }
+      },
+      "db": {
+        "kind": "hana",
+        "[development]": {
+          "kind": "hana"
+        }
+      },
+      "Doc_AI": {
+        "kind": "rest",
+        "credentials": {
+          "destination": "Doc_AI"
+        }
+      },
+      "connectivity": true,
+      "S4PO": {
+        "kind": "odata",
+        "credentials": {
+          "destination": "S4Hana_OnPrem"
+        }
+      },
+      "GENERATIVE_AI_HUB": {
+        "kind": "rest",
+        "credentials": {
+          "destination": "AI_CORE",
+          "requestTimeout": "300000"
+        }
+      }
+    },
+    "server": {
+      "body_parser": {
+        "limit": "50mb"
+      }
+    },
+    "log": {
+      "levels": {
+        "invoice-iq": "info"
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+<mvc:View
+    controllerName="invoiceiqui.controller.Preview"
+    xmlns="sap.m"
+    xmlns:mvc="sap.ui.core.mvc">
+
+    <Page
+        id="previewPage"
+        title="{i18n>previewTitle}"
+        class="invoiceiqPreviewPage">
+
+        <headerContent>
+            <Button
+                icon="sap-icon://download"
+                tooltip="{i18n>download}"
+                press=".onDownload" />
+            <Button
+                icon="sap-icon://decline"
+                tooltip="{i18n>close}"
+                press=".onClose" />
+        </headerContent>
+
+        <content>
+            <PDFViewer
+                id="pdfViewer"
+                title="{fileName}"
+                height="100%"
+                displayType="Embedded"
+                showDownloadButton="false"
+                isTrustedSource="true" />
+        </content>
+    </Page>
+
+</mvc:View>

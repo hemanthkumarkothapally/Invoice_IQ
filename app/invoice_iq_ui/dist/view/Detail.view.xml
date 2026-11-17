@@ -1,0 +1,512 @@
+<mvc:View
+    controllerName="invoiceiqui.controller.Detail"
+    xmlns="sap.m"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core"
+    xmlns:l="sap.ui.layout">
+
+    <Page id="detailPage" showHeader="false" busy="{ui>/busy}"
+          busyIndicatorDelay="0" class="iqDtPage">
+        <content>
+
+        <!-- Title -->
+        <VBox class="iqDtHead">
+            <HBox renderType="Bare" alignItems="Center" justifyContent="SpaceBetween" wrap="Wrap">
+                <VBox>
+                    <HBox renderType="Bare" alignItems="Center">
+                        <Title class="iqDtTitle" wrapping="true"
+                               text="{= ${invoice/invoiceNumber} || ${fileName} }" />
+                        <ObjectStatus class="iqPill iqPillLg sapUiSmallMarginBegin" inverted="true"
+                                      text="{path: 'status', formatter: '.formatter.statusText'}"
+                                      state="{path: 'status', formatter: '.formatter.statusState'}"
+                                      icon="{path: 'status', formatter: '.formatter.statusIcon'}" />
+                    </HBox>
+                    <Text class="iqDtVendor" text="{invoice/vendorName}" />
+                </VBox>
+
+                <HBox renderType="Bare" alignItems="Center">
+                    <!-- <Button icon="sap-icon://pdf-attachment" text="{i18n>viewPdf}" press=".onTogglePreview" />
+                    <Button icon="sap-icon://download" text="{i18n>download}" press=".onDownload"
+                            class="sapUiTinyMarginBegin" /> -->
+                    <Button icon="{ui>/fullScreenIcon}" tooltip="{ui>/fullScreenText}"
+                            press=".onToggleFullScreen" class="sapUiTinyMarginBegin" />
+                    <MenuButton icon="sap-icon://overflow" text="{i18n>more}" class="sapUiTinyMarginBegin">
+                        <menu>
+                            <Menu>
+                                <MenuItem text="{i18n>confirm}"    icon="sap-icon://accept"      press=".onConfirm" />
+                                <MenuItem text="{i18n>reject}"     icon="sap-icon://decline"     press=".onReject" />
+                                <MenuItem text="{i18n>searchPO}"   icon="sap-icon://search"      press=".onFindCandidates" />
+                                <MenuItem text="{i18n>addPO}"      icon="sap-icon://add"         press=".onAddCandidate" />
+                                <MenuItem text="{i18n>clearMatch}" icon="sap-icon://clear-all"   press=".onClearMatch" />
+                                <MenuItem text="{i18n>reprocess}"  icon="sap-icon://refresh"     press=".onReprocess" />
+                                <MenuItem text="{i18n>close}"      icon="sap-icon://nav-back"    press=".onClose" />
+                            </Menu>
+                        </menu>
+                    </MenuButton>
+                </HBox>
+            </HBox>
+
+            <!-- Fact strip -->
+            <HBox renderType="Bare" class="iqFacts" wrap="Wrap">
+                <HBox renderType="Bare" class="iqFact" alignItems="Center">
+                    <core:Icon src="sap-icon://appointment-2" class="iqFactIcon" />
+                    <VBox>
+                        <Text class="iqFactLabel" text="{i18n>invoiceDate}" />
+                        <Text class="iqFactValue"
+                              text="{ path: 'invoice/invoiceDate', type: 'sap.ui.model.odata.type.Date', formatOptions: {style: 'medium'} }" />
+                    </VBox>
+                </HBox>
+                <HBox renderType="Bare" class="iqFact" alignItems="Center">
+                    <core:Icon src="sap-icon://date-time" class="iqFactIcon" />
+                    <VBox>
+                        <Text class="iqFactLabel" text="{i18n>dueDate}" />
+                        <Text class="iqFactValue"
+                              text="{ path: 'invoice/dueDate', type: 'sap.ui.model.odata.type.Date', formatOptions: {style: 'medium'} }" />
+                    </VBox>
+                </HBox>
+                <HBox renderType="Bare" class="iqFact" alignItems="Center">
+                    <core:Icon src="sap-icon://sap-box" class="iqFactIcon" />
+                    <VBox>
+                        <Text class="iqFactLabel" text="{i18n>poNumber}" />
+                        <Text class="iqFactValue"
+                              text="{= ${invoice/matchedPO} || ${invoice/poNumberRaw} || '-' }" />
+                    </VBox>
+                </HBox>
+                <HBox renderType="Bare" class="iqFact" alignItems="Center">
+                    <core:Icon src="sap-icon://money-bills" class="iqFactIcon" />
+                    <VBox>
+                        <Text class="iqFactLabel" text="{i18n>netAmount}" />
+                        <Text class="iqFactValue"
+                              text="{ path: 'invoice/netAmount', type: 'sap.ui.model.odata.type.Decimal', constraints: {scale: 2}, formatOptions: {groupingEnabled: true, minFractionDigits: 2, maxFractionDigits: 2} } {invoice/currency}" />
+                    </VBox>
+                </HBox>
+                <HBox renderType="Bare" class="iqFact" alignItems="Center">
+                    <core:Icon src="sap-icon://document" class="iqFactIcon" />
+                    <VBox>
+                        <Text class="iqFactLabel" text="{i18n>fileName}" />
+                        <Text class="iqFactValue" maxLines="1" text="{fileName}" />
+                    </VBox>
+                </HBox>
+            </HBox>
+
+        </VBox>
+
+        <!-- Tabs -->
+        <IconTabBar id="detailTabs" expandable="false" headerMode="Inline"
+                        backgroundDesign="Transparent" headerBackgroundDesign="Transparent"
+                        class="iqDtTabs">
+                <items>
+
+                <IconTabFilter key="overview" text="{i18n>tabOverview}">
+                    <VBox class="iqTabBody">
+
+                        <!-- Verdict banner -->
+                        <HBox renderType="Bare" class="iqBanner iqBannerOk" width="100%" alignItems="Center"
+                              visible="{match>/showMatched}">
+                            <core:Icon src="sap-icon://accept" class="iqBannerIcon" />
+                            <VBox class="iqBannerText">
+                                <Text class="iqBannerTitle" text="{i18n>matchedTo} {invoice/matchedPO}" />
+                                <HBox renderType="Bare" alignItems="Center">
+                                    <Text class="iqBannerSub"
+                                          text="{i18n>confidenceScore}: {path: 'invoice/matchScore', formatter: '.formatter.percent'}" />
+                                    <ObjectStatus class="iqPill iqBandPill sapUiSmallMarginBegin" inverted="true"
+                                                  text="{path: 'match>/band', formatter: '.formatter.bandText'}"
+                                                  state="{path: 'match>/band', formatter: '.formatter.bandState'}" />
+                                </HBox>
+                            </VBox>
+                            <ToolbarSpacer />
+                            <Button text="{i18n>viewPoInS4}" icon="sap-icon://action"
+                                    iconFirst="false" press=".onOpenPoInS4" />
+                        </HBox>
+
+                        <HBox renderType="Bare" class="iqBanner iqBannerFail" width="100%" alignItems="Center"
+                              visible="{match>/showFailed}">
+                            <core:Icon src="sap-icon://error" class="iqBannerIcon" />
+                            <VBox class="iqBannerText">
+                                <Text class="iqBannerTitle" text="{i18n>extractionFailed}" />
+                                <Text class="iqBannerSub" text="{statusText}" />
+                            </VBox>
+                            <ToolbarSpacer />
+                            <Button text="{i18n>reprocess}" icon="sap-icon://refresh" press=".onReprocess" />
+                        </HBox>
+
+                        <HBox renderType="Bare" class="iqBanner iqBannerOpen" width="100%" alignItems="Center"
+                              visible="{match>/showOpen}">
+                            <core:Icon src="sap-icon://request" class="iqBannerIcon" />
+                            <VBox class="iqBannerText">
+                                <Text class="iqBannerTitle" text="{i18n>noMatchYet}" />
+                                <Text class="iqBannerSub"
+                                      text="{= ${match>/purchaseOrder}
+                                              ? ${i18n>bestCandidate} + ' ' + ${match>/purchaseOrder}
+                                              : ${i18n>noCandidatesYet} }" />
+                            </VBox>
+                            <ToolbarSpacer />
+                            <Button text="{i18n>searchPO}" icon="sap-icon://search"
+                                    type="Emphasized" press=".onFindCandidates" />
+                        </HBox>
+
+                        <!-- Information cards -->
+                        <l:Grid defaultSpan="L6 M12 S12" class="iqGrid" vSpacing="0" hSpacing="1">
+
+                            <VBox class="iqCard">
+                                <HBox renderType="Bare" class="iqCardHead" alignItems="Center">
+                                    <core:Icon src="sap-icon://document-text" class="iqCardIcon" />
+                                    <Title level="H4" class="iqCardTitle" text="{i18n>cardInvoice}" />
+                                </HBox>
+                                <VBox class="iqCardBody">
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>invoiceNumber}" /><Text class="iqKvV" text="{invoice/invoiceNumber}" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>invoiceDate}" /><Text class="iqKvV" text="{ path: 'invoice/invoiceDate', type: 'sap.ui.model.odata.type.Date', formatOptions: {style: 'medium'} }" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>dueDate}" /><Text class="iqKvV" text="{ path: 'invoice/dueDate', type: 'sap.ui.model.odata.type.Date', formatOptions: {style: 'medium'} }" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>vendorName}" /><Text class="iqKvV" text="{invoice/vendorName}" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>taxId}" /><Text class="iqKvV" text="{invoice/taxId}" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>currency}" /><Text class="iqKvV" text="{invoice/currency}" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>netAmount}" /><Text class="iqKvV" text="{ path: 'invoice/netAmount', type: 'sap.ui.model.odata.type.Decimal', constraints: {scale: 2}, formatOptions: {groupingEnabled: true, minFractionDigits: 2, maxFractionDigits: 2} }" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>taxAmount}" /><Text class="iqKvV" text="{ path: 'invoice/taxAmount', type: 'sap.ui.model.odata.type.Decimal', constraints: {scale: 2}, formatOptions: {groupingEnabled: true, minFractionDigits: 2, maxFractionDigits: 2} }" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>grossAmount}" /><Text class="iqKvV" text="{ path: 'invoice/grossAmount', type: 'sap.ui.model.odata.type.Decimal', constraints: {scale: 2}, formatOptions: {groupingEnabled: true, minFractionDigits: 2, maxFractionDigits: 2} }" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>paymentTerms}" /><Text class="iqKvV" text="{invoice/paymentTerms}" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv iqKvLast"><Text class="iqKvK" text="{i18n>vendorAddress}" /><Text class="iqKvV" wrapping="true" text="{invoice/vendorAddress}" /></HBox>
+                                </VBox>
+                            </VBox>
+
+                            <VBox class="iqCard">
+                                <HBox renderType="Bare" class="iqCardHead" alignItems="Center">
+                                    <core:Icon src="sap-icon://sap-box" class="iqCardIcon" />
+                                    <Title level="H4" class="iqCardTitle" text="{i18n>cardPo}" />
+                                    <ToolbarSpacer />
+                                    <Button text="{i18n>viewInS4}" press=".onOpenPoInS4"
+                                            visible="{match>/hasPo}" />
+                                </HBox>
+                                <VBox class="iqCardBody" visible="{match>/hasPo}">
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>purchaseOrder}" /><Text class="iqKvV" text="{match>/purchaseOrder}" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>supplier}" /><Text class="iqKvV" text="{match>/supplier}" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>poDate}" /><Text class="iqKvV" text="{match>/poDateText}" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>companyCode}" /><Text class="iqKvV" text="{match>/companyCode}" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>purchasingOrg}" /><Text class="iqKvV" text="{match>/purchasingOrg}" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>purchasingGroup}" /><Text class="iqKvV" text="{match>/purchasingGroup}" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>paymentTerms}" /><Text class="iqKvV" text="{match>/paymentTerms}" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>currency}" /><Text class="iqKvV" text="{match>/currency}" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>netValue}" /><Text class="iqKvV" text="{match>/netValueText}" /></HBox>
+                                    <HBox renderType="Bare" class="iqKv iqKvLast"><Text class="iqKvK" text="{i18n>items}" /><Text class="iqKvV" text="{match>/itemCount}" /></HBox>
+                                </VBox>
+                                <VBox class="iqCardBody iqEmptyCard" visible="{match>/noPo}">
+                                    <Text class="iqKvK" text="{i18n>noPoChosen}" />
+                                </VBox>
+                            </VBox>
+                        </l:Grid>
+
+                        <!-- Matching cards -->
+                        <l:Grid defaultSpan="L6 M12 S12" class="iqGrid" vSpacing="0" hSpacing="1">
+
+                            <VBox class="iqCard">
+                                <HBox renderType="Bare" class="iqCardHead" alignItems="Center">
+                                    <core:Icon src="sap-icon://donut-chart" class="iqCardIcon" />
+                                    <Title level="H4" class="iqCardTitle" text="{i18n>cardSummary}" />
+                                </HBox>
+                                <HBox renderType="Bare" class="iqCardBody iqSummary" alignItems="Center">
+                                    <VBox id="scoreRing" class="iqRing" alignItems="Center" justifyContent="Center">
+                                        <Text class="iqRingPct"
+                                              text="{= ${match>/score} ? ${path: 'match>/score', formatter: '.formatter.percent'} : '–' }" />
+                                        <Text class="iqRingLabel" text="{i18n>matchScore}" />
+                                        <ObjectStatus class="iqPill iqBandPill sapUiTinyMarginTop" inverted="true"
+                                                      text="{path: 'match>/band', formatter: '.formatter.bandText'}"
+                                                      state="{path: 'match>/band', formatter: '.formatter.bandState'}" />
+                                    </VBox>
+
+                                    <VBox class="iqBars">
+                                        <HBox renderType="Bare" class="iqBar" alignItems="Center">
+                                            <core:Icon src="sap-icon://header" class="iqBarIcon" />
+                                            <Text class="iqBarLabel" text="{i18n>barHeader}" />
+                                            <Text class="iqBarPct" text="{path: 'match>/headerScore', formatter: '.formatter.percent'}" />
+                                            <ProgressIndicator class="iqBarBar" percentValue="{match>/headerPct}" showValue="false"
+                                                               state="{path: 'match>/headerScore', formatter: '.formatter.signalState'}" />
+                                        </HBox>
+                                        <HBox renderType="Bare" class="iqBar" alignItems="Center">
+                                            <core:Icon src="sap-icon://list" class="iqBarIcon" />
+                                            <Text class="iqBarLabel" text="{i18n>barLine}" />
+                                            <Text class="iqBarPct" text="{path: 'match>/lineScore', formatter: '.formatter.percent'}" />
+                                            <ProgressIndicator class="iqBarBar" percentValue="{match>/linePct}" showValue="false"
+                                                               state="{path: 'match>/lineScore', formatter: '.formatter.signalState'}" />
+                                        </HBox>
+                                        <HBox renderType="Bare" class="iqBar" alignItems="Center">
+                                            <core:Icon src="sap-icon://money-bills" class="iqBarIcon" />
+                                            <Text class="iqBarLabel" text="{i18n>barAmount}" />
+                                            <Text class="iqBarPct" text="{path: 'match>/amountScore', formatter: '.formatter.percent'}" />
+                                            <ProgressIndicator class="iqBarBar" percentValue="{match>/amountPct}" showValue="false"
+                                                               state="{path: 'match>/amountScore', formatter: '.formatter.signalState'}" />
+                                        </HBox>
+                                        <HBox renderType="Bare" class="iqBar" alignItems="Center">
+                                            <core:Icon src="sap-icon://sum" class="iqBarIcon" />
+                                            <Text class="iqBarLabel" text="{i18n>barQuantity}" />
+                                            <Text class="iqBarPct" text="{path: 'match>/quantityScore', formatter: '.formatter.percent'}" />
+                                            <ProgressIndicator class="iqBarBar" percentValue="{match>/quantityPct}" showValue="false"
+                                                               state="{path: 'match>/quantityScore', formatter: '.formatter.signalState'}" />
+                                        </HBox>
+                                        <HBox renderType="Bare" class="iqBar" alignItems="Center">
+                                            <core:Icon src="sap-icon://product" class="iqBarIcon" />
+                                            <Text class="iqBarLabel" text="{i18n>barMaterial}" />
+                                            <Text class="iqBarPct" text="{path: 'match>/materialScore', formatter: '.formatter.percent'}" />
+                                            <ProgressIndicator class="iqBarBar" percentValue="{match>/materialPct}" showValue="false"
+                                                               state="{path: 'match>/materialScore', formatter: '.formatter.signalState'}" />
+                                        </HBox>
+                                        <HBox renderType="Bare" class="iqBar" alignItems="Center">
+                                            <core:Icon src="sap-icon://text-align-left" class="iqBarIcon" />
+                                            <Text class="iqBarLabel" text="{i18n>barDescription}" />
+                                            <Text class="iqBarPct" text="{path: 'match>/descriptionScore', formatter: '.formatter.percent'}" />
+                                            <ProgressIndicator class="iqBarBar" percentValue="{match>/descriptionPct}" showValue="false"
+                                                               state="{path: 'match>/descriptionScore', formatter: '.formatter.signalState'}" />
+                                        </HBox>
+                                        <HBox renderType="Bare" class="iqBar" alignItems="Center">
+                                            <core:Icon src="sap-icon://measuring-point" class="iqBarIcon" />
+                                            <Text class="iqBarLabel" text="{i18n>barUom}" />
+                                            <Text class="iqBarPct" text="{path: 'match>/uomScore', formatter: '.formatter.percent'}" />
+                                            <ProgressIndicator class="iqBarBar" percentValue="{match>/uomPct}" showValue="false"
+                                                               state="{path: 'match>/uomScore', formatter: '.formatter.signalState'}" />
+                                        </HBox>
+                                        <HBox renderType="Bare" class="iqBar" alignItems="Center">
+                                            <core:Icon src="sap-icon://tag" class="iqBarIcon" />
+                                            <Text class="iqBarLabel" text="{i18n>barUnitPrice}" />
+                                            <Text class="iqBarPct" text="{path: 'match>/unitPriceScore', formatter: '.formatter.percent'}" />
+                                            <ProgressIndicator class="iqBarBar" percentValue="{match>/unitPricePct}" showValue="false"
+                                                               state="{path: 'match>/unitPriceScore', formatter: '.formatter.signalState'}" />
+                                        </HBox>
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+
+                            <VBox class="iqCard">
+                                <HBox renderType="Bare" class="iqCardHead" alignItems="Center">
+                                    <core:Icon src="sap-icon://lightbulb" class="iqCardIcon" />
+                                    <Title level="H4" class="iqCardTitle" text="{i18n>cardReasons}" />
+                                    <ToolbarSpacer />
+                                    <Text class="iqReasonSummary" text="{match>/reasonSummary}" />
+                                </HBox>
+                                <VBox class="iqCardBody">
+                                    <List items="{match>/reasons}" showSeparators="None"
+                                          class="iqReasonList" noDataText="{i18n>noReasons}">
+                                        <CustomListItem class="iqReasonItem">
+                                            <HBox renderType="Bare" alignItems="Start">
+                                                <core:Icon src="{match>icon}" class="iqReasonIcon"
+                                                           color="{match>state}" />
+                                                <Text class="iqReasonText" wrapping="true" text="{match>text}" />
+                                            </HBox>
+                                        </CustomListItem>
+                                    </List>
+                                </VBox>
+                            </VBox>
+                        </l:Grid>
+
+                        <!-- Line items -->
+                        <VBox class="iqCard">
+                            <HBox renderType="Bare" class="iqCardHead" alignItems="Center">
+                                <core:Icon src="sap-icon://table-view" class="iqCardIcon" />
+                                <Title level="H4" class="iqCardTitle"
+                                       text="{i18n>cardLines} ({ui>/lineCount})" />
+                                <ToolbarSpacer />
+                                <ObjectStatus title="{i18n>lineSum}" text="{ui>/lineSum}" state="{ui>/lineSumState}" />
+                            </HBox>
+                            <Table id="lineItemTable" class="iqTable" growing="true"
+                                       growingThreshold="20" updateFinished=".onLineItemsUpdated"
+                                       popinLayout="GridSmall" fixedLayout="false"
+                                       noDataText="{i18n>noLineItems}"
+                                       items="{ path: 'invoice/lineItems', parameters: { $orderby: 'lineNo' } }">
+                                    <columns>
+                                        <Column width="3rem">
+                                            <Text text="#" />
+                                        </Column>
+                                        <Column width="10rem" minScreenWidth="Tablet" demandPopin="true"
+                                                popinDisplay="Inline">
+                                            <Text text="{i18n>material}" />
+                                        </Column>
+                                        <Column minScreenWidth="Tablet" demandPopin="true"
+                                                popinDisplay="Inline">
+                                            <Text text="{i18n>description}" />
+                                        </Column>
+                                        <Column hAlign="End" width="6rem">
+                                            <Text text="{i18n>quantity}" />
+                                        </Column>
+                                        <Column width="4rem" minScreenWidth="Tablet" demandPopin="true"
+                                                popinDisplay="Inline">
+                                            <Text text="{i18n>uom}" />
+                                        </Column>
+                                        <Column hAlign="End" width="8rem" minScreenWidth="Desktop"
+                                                demandPopin="true" popinDisplay="Inline">
+                                            <Text text="{i18n>unitPrice}" />
+                                        </Column>
+                                        <Column hAlign="End" width="9rem">
+                                            <Text text="{i18n>netAmount}" />
+                                        </Column>
+                                        <Column width="7rem" minScreenWidth="Desktop" demandPopin="true"
+                                                popinDisplay="Inline">
+                                            <Text text="{i18n>match}" />
+                                        </Column>
+                                    </columns>
+                                    <items>
+                                        <ColumnListItem vAlign="Middle">
+                                            <cells>
+                                                <Text text="{lineNo}" />
+                                                <Text text="{materialNumber}" wrapping="false" />
+                                                <Text text="{description}" wrapping="false" />
+                                                <Text text="{ path: 'quantity', type: 'sap.ui.model.odata.type.Decimal' }" />
+                                                <Text text="{uom}" />
+                                                <Text text="{ path: 'unitPrice', type: 'sap.ui.model.odata.type.Decimal', constraints: {scale: 2}, formatOptions: {groupingEnabled: true, minFractionDigits: 2, maxFractionDigits: 2} }" />
+                                                <Text text="{ path: 'lineTotal', type: 'sap.ui.model.odata.type.Decimal', constraints: {scale: 2}, formatOptions: {groupingEnabled: true, minFractionDigits: 2, maxFractionDigits: 2} }" />
+                                                <ObjectStatus class="iqPill" inverted="true"
+                                                              text="{path: 'lineNo', formatter: '.formatter.lineMatchText'}"
+                                                              state="{path: 'lineNo', formatter: '.formatter.lineMatchState'}"
+                                                              icon="{path: 'lineNo', formatter: '.formatter.lineMatchIcon'}" />
+                                            </cells>
+                                        </ColumnListItem>
+                                    </items>
+                                </Table>
+                        </VBox>
+                    </VBox>
+                </IconTabFilter>
+
+                <IconTabFilter key="lines" visible="false" text="{i18n>tabLines}">
+                    <VBox class="iqTabBody">
+                        <VBox class="iqCard">
+                            <HBox renderType="Bare" class="iqCardHead" alignItems="Center">
+                                <core:Icon src="sap-icon://edit" class="iqCardIcon" />
+                                <Title level="H4" class="iqCardTitle" text="{i18n>editLines}" />
+                                <ToolbarSpacer />
+                                <Button text="{i18n>save}" type="Emphasized" press=".onSave"
+                                        enabled="{ui>/hasChanges}" />
+                                <Button text="{i18n>discard}" press=".onDiscard"
+                                        enabled="{ui>/hasChanges}" class="sapUiTinyMarginBegin" />
+                            </HBox>
+                            <Table class="iqTable" noDataText="{i18n>noLineItems}"
+                                   items="{ path: 'invoice/lineItems', parameters: { $orderby: 'lineNo' } }">
+                                <columns>
+                                    <Column width="3rem"><Text text="#" /></Column>
+                                    <Column><Text text="{i18n>description}" /></Column>
+                                    <Column width="11rem"><Text text="{i18n>material}" /></Column>
+                                    <Column hAlign="End" width="9rem"><Text text="{i18n>quantity}" /></Column>
+                                    <Column hAlign="End" width="9rem"><Text text="{i18n>unitPrice}" /></Column>
+                                    <Column hAlign="End" width="9rem"><Text text="{i18n>lineTotal}" /></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem>
+                                        <cells>
+                                            <Text text="{lineNo}" />
+                                            <Input value="{description}" change=".onFieldChange" />
+                                            <Input value="{materialNumber}" change=".onFieldChange" />
+                                            <HBox renderType="Bare" alignItems="Center" justifyContent="End">
+                                                <Input value="{ path: 'quantity', type: 'sap.ui.model.odata.type.Decimal' }" change=".onFieldChange" textAlign="End" width="4.5rem" />
+                                                <Text text="{uom}" width="2.5rem" wrapping="false" class="sapUiTinyMarginBegin" />
+                                            </HBox>
+                                            <Input value="{ path: 'unitPrice', type: 'sap.ui.model.odata.type.Decimal', constraints: {scale: 2}, formatOptions: {groupingEnabled: true, minFractionDigits: 2, maxFractionDigits: 2} }" change=".onFieldChange" textAlign="End" />
+                                            <Input value="{ path: 'lineTotal', type: 'sap.ui.model.odata.type.Decimal', constraints: {scale: 2}, formatOptions: {groupingEnabled: true, minFractionDigits: 2, maxFractionDigits: 2} }" change=".onFieldChange" textAlign="End" />
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </VBox>
+                    </VBox>
+                </IconTabFilter>
+
+                <IconTabFilter key="po" text="{i18n>tabPo}">
+                    <VBox class="iqTabBody">
+                        <VBox class="iqCard">
+                            <HBox renderType="Bare" class="iqCardHead" alignItems="Center">
+                                <core:Icon src="sap-icon://sap-box" class="iqCardIcon" />
+                                <Title level="H4" class="iqCardTitle" text="{i18n>candidates}" />
+                                <ToolbarSpacer />
+                                <Button icon="sap-icon://search" text="{i18n>searchPO}"
+                                        type="Transparent" press=".onFindCandidates" />
+                                <Button icon="sap-icon://add" text="{i18n>addPO}"
+                                        type="Transparent" press=".onAddCandidate" />
+                            </HBox>
+                            <Table id="candidateTable" class="iqTable" popinLayout="GridSmall"
+                                   fixedLayout="false" noDataText="{i18n>noCandidates}"
+                                   items="{ path: 'invoice/candidates', parameters: { $orderby: 'rank' } }">
+                                <columns>
+                                    <Column width="10rem">
+                                        <Text text="{i18n>purchaseOrder}" />
+                                    </Column>
+                                    <Column width="9rem" minScreenWidth="Tablet" demandPopin="true"
+                                            popinDisplay="Inline">
+                                        <Text text="{i18n>supplier}" />
+                                    </Column>
+                                    <Column width="8rem" minScreenWidth="Desktop" demandPopin="true"
+                                            popinDisplay="Inline">
+                                        <Text text="{i18n>poDate}" />
+                                    </Column>
+                                    <Column hAlign="End" width="11rem" minScreenWidth="Tablet"
+                                            demandPopin="true" popinDisplay="Inline">
+                                        <Text text="{i18n>netValue}" />
+                                    </Column>
+                                    <Column width="7rem" hAlign="Center">
+                                        <Text text="{i18n>score}" />
+                                    </Column>
+                                    <Column minScreenWidth="Desktop" demandPopin="true"
+                                            popinDisplay="Block">
+                                        <Text text="{i18n>why}" />
+                                    </Column>
+                                    <Column width="6rem" hAlign="End">
+                                        <Text text="" />
+                                    </Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem vAlign="Middle"
+                                                    highlight="{= ${purchaseOrder} === ${invoice/matchedPO} ? 'Success' : 'None' }">
+                                        <cells>
+                                            <ObjectIdentifier title="{purchaseOrder}" text="{companyCode}" />
+                                            <Text text="{supplier}" />
+                                            <Text text="{ path: 'poDate', type: 'sap.ui.model.odata.type.Date', formatOptions: {style: 'medium'} }" />
+                                            <ObjectNumber number="{ path: 'netValue', type: 'sap.ui.model.odata.type.Decimal', constraints: {scale: 2}, formatOptions: {groupingEnabled: true, minFractionDigits: 2, maxFractionDigits: 2} }" unit="{currency}" />
+                                            <VBox alignItems="Center">
+                                                <ObjectStatus class="iqPill iqBandPill" inverted="true"
+                                                              text="{path: 'band', formatter: '.formatter.bandText'}"
+                                                              state="{path: 'band', formatter: '.formatter.bandState'}" />
+                                                <Text class="iqMuted" text="{path: 'score', formatter: '.formatter.percent'}" />
+                                            </VBox>
+                                            <Text class="iqWhy" wrapping="true" maxLines="3"
+                                                  text="{path: 'reasons', formatter: '.formatter.reasons'}" />
+                                            <Button text="{i18n>select}" press=".onSelectCandidate"
+                                                    type="{= ${rank} === 1 ? 'Emphasized' : 'Transparent' }"
+                                                    enabled="{= ${purchaseOrder} !== ${invoice/matchedPO} }" />
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </VBox>
+                    </VBox>
+                </IconTabFilter>
+
+                <IconTabFilter key="history" text="{i18n>tabHistory}">
+                    <VBox class="iqTabBody">
+                        <VBox class="iqCard">
+                            <HBox renderType="Bare" class="iqCardHead" alignItems="Center">
+                                <core:Icon src="sap-icon://history" class="iqCardIcon" />
+                                <Title level="H4" class="iqCardTitle" text="{i18n>tabHistory}" />
+                            </HBox>
+                            <VBox class="iqCardBody">
+                                <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>uploadedBy}" /><Text class="iqKvV" text="{uploadedBy}" /></HBox>
+                                <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>uploadedAt}" /><Text class="iqKvV" text="{path: 'uploadedAt', formatter: '.formatter.dateTime'}" /></HBox>
+                                <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>status}" /><Text class="iqKvV" text="{path: 'status', formatter: '.formatter.statusText'}" /></HBox>
+                                <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>statusDetail}" /><Text class="iqKvV" wrapping="true" text="{statusText}" /></HBox>
+                                <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>matchedBy}" /><Text class="iqKvV" text="{invoice/matchedBy}" /></HBox>
+                                <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>matchedAt}" /><Text class="iqKvV" text="{path: 'invoice/matchedAt', formatter: '.formatter.dateTime'}" /></HBox>
+                                <HBox renderType="Bare" class="iqKv"><Text class="iqKvK" text="{i18n>reviewedBy}" /><Text class="iqKvV" text="{invoice/reviewedBy}" /></HBox>
+                                <HBox renderType="Bare" class="iqKv iqKvLast"><Text class="iqKvK" text="{i18n>confidence}" /><Text class="iqKvV" text="{path: 'invoice/confidence', formatter: '.formatter.percent'}" /></HBox>
+                            </VBox>
+                        </VBox>
+                    </VBox>
+                </IconTabFilter>
+
+                </items>
+        </IconTabBar>
+
+        </content>
+
+        <footer>
+            <OverflowToolbar visible="{ui>/hasChanges}">
+                <Text class="iqUnsaved" text="{i18n>unsaved}" />
+                <ToolbarSpacer />
+                <Button text="{i18n>discard}" press=".onDiscard" />
+                <Button text="{i18n>save}" type="Emphasized" press=".onSave" />
+            </OverflowToolbar>
+        </footer>
+    </Page>
+
+</mvc:View>

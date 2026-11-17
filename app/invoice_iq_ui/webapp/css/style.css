@@ -1,0 +1,583 @@
+/* ===========================================================================
+   Invoice IQ
+
+   An accounts payable clerk works a queue: one decision per invoice, many
+   times a day. The list is built for vertical scanning — vendor, amount and
+   status sit in fixed columns — and the detail page opens with the verdict
+   rather than the evidence.
+
+   Colours come from Horizon tokens, so the app follows whatever theme the
+   launchpad sets, including dark and high contrast.
+
+   Every flex row in the views uses renderType="Bare". Without it sap.m.HBox
+   wraps each child in a div and the widths below land on the wrapper instead
+   of the text, which runs every label into its value.
+   =========================================================================== */
+
+/* --- shared -------------------------------------------------------------- */
+
+.iqPill.sapMObjStatus {
+  border-radius: 1rem;
+  padding: 0.1875rem 0.625rem;
+}
+
+.iqPill .sapMObjStatusText {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.iqPillLg .sapMObjStatusText {
+  font-size: 0.8125rem;
+}
+
+.iqBandPill .sapMObjStatusText {
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+}
+
+.iqMuted {
+  font-size: 0.75rem;
+  color: var(--sapContent_LabelColor);
+}
+
+/* ===========================================================================
+   Worklist
+   =========================================================================== */
+
+.iqWlPage .sapMPageEnableScrolling {
+  background: var(--sapGroup_ContentBackground);
+}
+
+.iqWlHeader {
+  padding: 1rem 1.25rem 0.5rem 1.25rem;
+}
+
+.iqWlTitle {
+  font-size: 1.375rem;
+  font-weight: 700;
+}
+
+.iqWlHeadCount {
+  font-size: 1rem;
+  color: var(--sapContent_LabelColor);
+  margin-left: 0.375rem;
+}
+
+.iqWlTabs .sapMITBHead {
+  padding: 0 1.25rem;
+}
+
+.iqWlSearch {
+  padding: 0.5rem 1.25rem 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--sapGroup_ContentBorderColor);
+}
+
+.iqWlSearchField {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-right: 0.5rem;
+}
+
+.iqWlList .sapMLIB {
+  padding: 0;
+}
+
+.iqWlRow {
+  padding: 0.875rem 1.25rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.iqWlDocIcon {
+  flex: 0 0 auto;
+  margin-right: 0.875rem;
+}
+
+/* The begin column can be narrow, so the vendor block must be allowed to
+   shrink rather than being pushed to zero by the amount beside it. */
+.iqWlMain {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  padding-right: 0.75rem;
+}
+
+.iqWlMain .sapMText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iqWlVendor {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--sapTextColor);
+  line-height: 1.35;
+}
+
+.iqWlRef,
+.iqWlDate {
+  font-size: 0.8125rem;
+  color: var(--sapContent_LabelColor);
+  line-height: 1.4;
+}
+
+.iqWlAmountBox {
+  flex: 0 0 auto;
+  max-width: 45%;
+}
+
+/* Tabular figures let the eye run down the amount column without realigning
+   on every row. */
+.iqWlAmount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sapTextColor);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.iqWlCurrency {
+  font-size: 0.75rem;
+  color: var(--sapContent_LabelColor);
+}
+
+.iqWlPill {
+  flex: 0 0 auto;
+}
+
+.iqWlAmountBox .iqWlPill .sapMObjStatusText {
+  white-space: nowrap;
+}
+
+.iqWlNav {
+  flex: 0 0 auto;
+  margin-left: 0.75rem;
+  color: var(--sapContent_NonInteractiveIconColor);
+}
+
+.iqWlList .sapMLIBSelected {
+  background: var(--sapList_SelectionBackgroundColor);
+  box-shadow: inset 3px 0 0 0 var(--sapSelectedColor);
+}
+
+/* ===========================================================================
+   Detail
+   =========================================================================== */
+
+.iqDtPage .sapMPageEnableScrolling {
+  background: var(--sapBackgroundColor);
+}
+
+.iqDtHead {
+  padding: 1.25rem 1.5rem 0 1.5rem;
+  background: var(--sapGroup_ContentBackground);
+}
+
+.iqDtTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.iqDtVendor {
+  font-size: 0.9375rem;
+  color: var(--sapContent_LabelColor);
+  margin-top: 0.125rem;
+}
+
+/* --- fact strip ---------------------------------------------------------- */
+
+.iqFacts {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.iqFact {
+  margin: 0 2.5rem 0.75rem 0;
+}
+
+.iqFactIcon {
+  flex: 0 0 auto;
+  font-size: 1rem;
+  color: var(--sapContent_NonInteractiveIconColor);
+  margin-right: 0.5rem;
+}
+
+.iqFactLabel {
+  font-size: 0.75rem;
+  color: var(--sapContent_LabelColor);
+  line-height: 1.3;
+}
+
+.iqFactValue {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sapTextColor);
+  line-height: 1.3;
+}
+
+/* --- tabs ---------------------------------------------------------------- */
+
+.iqDtTabs .sapMITBHead {
+  padding: 0;
+  border-bottom: 1px solid var(--sapGroup_ContentBorderColor);
+}
+
+.iqTabBody {
+  padding: 1.25rem 1.5rem;
+}
+
+/* --- the verdict banner -------------------------------------------------- */
+/* The one loud element on the page. Everything around it stays quiet so a
+   reviewer always looks in the same place first. */
+
+.iqBanner {
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  margin-bottom: 1.25rem;
+}
+
+.iqBannerOk    { background: var(--sapSuccessBackground); border-color: var(--sapPositiveElementColor); }
+.iqBannerOpen  { background: var(--sapNeutralBackground); border-color: var(--sapNeutralElementColor); }
+.iqBannerFail  { background: var(--sapErrorBackground);   border-color: var(--sapNegativeElementColor); }
+
+.iqBannerIcon {
+  flex: 0 0 auto;
+  font-size: 1.375rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  line-height: 2.25rem;
+  border-radius: 50%;
+  background: var(--sapGroup_ContentBackground);
+}
+
+.iqBannerOk .iqBannerIcon   { color: var(--sapPositiveElementColor); }
+.iqBannerOpen .iqBannerIcon { color: var(--sapNeutralElementColor); }
+.iqBannerFail .iqBannerIcon { color: var(--sapNegativeElementColor); }
+
+.iqBannerText {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-left: 0.875rem;
+}
+
+.iqBannerTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sapTextColor);
+}
+
+.iqBannerSub {
+  font-size: 0.8125rem;
+  color: var(--sapContent_LabelColor);
+  margin-top: 0.125rem;
+}
+
+/* --- cards --------------------------------------------------------------- */
+
+.iqGrid .sapUiRespGridSpan {
+  display: flex;
+}
+
+.iqGrid .sapUiRespGridSpan > .iqCard {
+  width: 100%;
+}
+
+.iqCard {
+  background: var(--sapGroup_ContentBackground);
+  border: 1px solid var(--sapGroup_ContentBorderColor);
+  border-radius: 0.5rem;
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+
+.iqCardHead {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--sapGroup_ContentBorderColor);
+}
+
+.iqCardIcon {
+  flex: 0 0 auto;
+  font-size: 1rem;
+  color: var(--sapSelectedColor);
+  margin-right: 0.5rem;
+}
+
+.iqCardTitle {
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.iqCardBody {
+  padding: 0.25rem 1rem 0.75rem 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.iqEmptyCard {
+  padding: 1.5rem 1rem;
+}
+
+/* --- label / value rows -------------------------------------------------- */
+
+.iqKv {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--sapGroup_ContentBorderColor);
+  align-items: baseline;
+}
+
+.iqKvLast {
+  border-bottom: none;
+}
+
+.iqKv > .iqKvK {
+  display: block;
+  flex: 0 0 40%;
+  max-width: 40%;
+  padding-right: 1rem;
+  box-sizing: border-box;
+  font-size: 0.8125rem;
+  color: var(--sapContent_LabelColor);
+}
+
+.iqKv > .iqKvV {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sapTextColor);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- matching summary ---------------------------------------------------- */
+
+.iqSummary {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+/* The ring is a conic gradient. The sweep comes from one of the iqRingNN
+   classes below, applied by the controller, because a style class survives the
+   lazy rendering of tab content in a way an inline style does not. */
+.iqRing {
+  flex: 0 0 8.5rem;
+  width: 8.5rem;
+  height: 8.5rem;
+  margin-right: 1.25rem;
+  border-radius: 50%;
+  background: var(--sapGroup_ContentBorderColor);
+  position: relative;
+}
+
+.iqRing0 { background: conic-gradient(var(--sapPositiveElementColor) 0%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing5 { background: conic-gradient(var(--sapPositiveElementColor) 5%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing10 { background: conic-gradient(var(--sapPositiveElementColor) 10%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing15 { background: conic-gradient(var(--sapPositiveElementColor) 15%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing20 { background: conic-gradient(var(--sapPositiveElementColor) 20%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing25 { background: conic-gradient(var(--sapPositiveElementColor) 25%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing30 { background: conic-gradient(var(--sapPositiveElementColor) 30%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing35 { background: conic-gradient(var(--sapPositiveElementColor) 35%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing40 { background: conic-gradient(var(--sapPositiveElementColor) 40%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing45 { background: conic-gradient(var(--sapPositiveElementColor) 45%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing50 { background: conic-gradient(var(--sapPositiveElementColor) 50%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing55 { background: conic-gradient(var(--sapPositiveElementColor) 55%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing60 { background: conic-gradient(var(--sapPositiveElementColor) 60%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing65 { background: conic-gradient(var(--sapPositiveElementColor) 65%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing70 { background: conic-gradient(var(--sapPositiveElementColor) 70%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing75 { background: conic-gradient(var(--sapPositiveElementColor) 75%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing80 { background: conic-gradient(var(--sapPositiveElementColor) 80%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing85 { background: conic-gradient(var(--sapPositiveElementColor) 85%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing90 { background: conic-gradient(var(--sapPositiveElementColor) 90%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing95 { background: conic-gradient(var(--sapPositiveElementColor) 95%, var(--sapGroup_ContentBorderColor) 0); }
+.iqRing100 { background: conic-gradient(var(--sapPositiveElementColor) 100%, var(--sapGroup_ContentBorderColor) 0); }
+
+.iqRing::before {
+  content: "";
+  position: absolute;
+  inset: 0.625rem;
+  border-radius: 50%;
+  background: var(--sapGroup_ContentBackground);
+}
+
+.iqRing > * {
+  position: relative;
+  z-index: 1;
+}
+
+.iqRingPct {
+  font-size: 1.625rem;
+  font-weight: 700;
+  color: var(--sapTextColor);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.iqRingLabel {
+  font-size: 0.75rem;
+  color: var(--sapContent_LabelColor);
+  margin-top: 0.125rem;
+  margin-bottom: 0.25rem;
+}
+
+.iqRing .iqBandPill {
+  transform: scale(0.9);
+}
+
+.iqBars {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.iqBar {
+  padding: 0.25rem 0;
+}
+
+.iqBarIcon {
+  flex: 0 0 auto;
+  font-size: 0.875rem;
+  color: var(--sapContent_NonInteractiveIconColor);
+  margin-right: 0.5rem;
+}
+
+.iqBarLabel {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.8125rem;
+  color: var(--sapTextColor);
+}
+
+.iqBarPct {
+  flex: 0 0 3rem;
+  text-align: right;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.75rem;
+}
+
+.iqBarBar {
+  flex: 0 0 6rem;
+  width: 6rem;
+}
+
+.iqBarBar .sapMPI {
+  height: 0.5rem;
+}
+
+/* --- reasons ------------------------------------------------------------- */
+
+.iqReasonList .sapMLIB {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.iqReasonItem {
+  padding: 0.3125rem 0;
+}
+
+/* Colour comes from the control's semantic state, set per reason, so a
+   disagreement no longer wears the same tick as a match. */
+.iqReasonIcon {
+  flex: 0 0 auto;
+  font-size: 0.9375rem;
+  margin-right: 0.5rem;
+  padding-top: 0.0625rem;
+}
+
+.iqReasonSummary {
+  font-size: 0.75rem;
+  color: var(--sapContent_LabelColor);
+}
+
+.iqReasonText {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--sapTextColor);
+}
+
+/* --- tables -------------------------------------------------------------- */
+
+.iqTable .sapMListTblHeaderCell {
+  font-size: 0.75rem;
+  color: var(--sapContent_LabelColor);
+}
+
+.iqTable .sapMListTblCell {
+  font-size: 0.8125rem;
+}
+
+.iqTable .sapMListTbl .sapMInputBaseInner {
+  padding-left: 0.25rem;
+}
+
+/* A column that pops in leaves an empty cell behind it. Without this the
+   header row grows to the height of the placeholders it is reserving, which
+   is what made the line items table look broken at narrow widths. */
+.iqTable .sapMListTblHeader,
+.iqTable .sapMListTblRow {
+  height: auto;
+}
+
+.iqTable .sapMListTblHeaderCell,
+.iqTable .sapMListTblCell {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  vertical-align: middle;
+}
+
+/* Popin rows are label/value pairs, so they need their own rhythm. */
+.iqTable .sapMListTblSubCntRow {
+  padding: 0.125rem 0;
+}
+
+.iqTable .sapMListTblSubCntHdr {
+  font-size: 0.75rem;
+  color: var(--sapContent_LabelColor);
+  padding-right: 0.5rem;
+}
+
+.iqTable .sapMListTblSubCntVal {
+  font-size: 0.8125rem;
+}
+
+/* Long text must be allowed to shrink, or it forces the table wider than the
+   card and the columns collapse instead of popping in. */
+.iqTable .sapMListTblCell .sapMText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.iqWhy {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  white-space: normal;
+}
+
+.iqUnsaved {
+  font-size: 0.8125rem;
+  color: var(--sapCriticalTextColor);
+}
+
+/* --- preview ------------------------------------------------------------- */
+
+.invoiceiqPreviewPage .sapMPDFViewer {
+  height: 100%;
+}
+
+/* --- narrow screens ------------------------------------------------------ */
+
+@media (max-width: 640px) {
+  .iqTabBody  { padding: 1rem 0.75rem; }
+  .iqDtHead   { padding: 1rem 0.75rem 0 0.75rem; }
+  .iqDtTitle  { font-size: 1.25rem; }
+  .iqFact     { margin-right: 1.25rem; }
+  .iqRing     { flex-basis: 7rem; width: 7rem; height: 7rem; }
+  .iqRingPct  { font-size: 1.25rem; }
+  .iqBarBar   { flex-basis: 4rem; width: 4rem; }
+  .iqWlRow    { padding: 0.875rem 0.75rem; }
+}

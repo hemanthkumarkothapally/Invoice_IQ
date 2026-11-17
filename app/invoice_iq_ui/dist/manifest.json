@@ -1,0 +1,167 @@
+{
+	"_version": "1.89.0",
+	"sap.app": {
+		"id": "invoiceiqui",
+		"type": "application",
+		"i18n": {
+			"bundleUrl": "i18n/i18n.properties",
+			"supportedLocales": [
+				""
+			]
+		},
+		"applicationVersion": {
+			"version": "0.0.1"
+		},
+		"title": "{{appTitle}}",
+		"description": "{{appDescription}}",
+		"resources": "resources.json",
+		"sourceTemplate": {
+			"id": "@sap/generator-fiori:basic",
+			"version": "1.32.0",
+			"toolsId": "912ca525-05db-4192-9ee7-4ed47c7989c3"
+		},
+		"dataSources": {
+			"mainService": {
+				"uri": "/invoice/",
+				"type": "OData",
+				"settings": {
+					"annotations": [],
+					"odataVersion": "4.0"
+				}
+			}
+		}
+	},
+	"sap.ui": {
+		"technology": "UI5",
+		"icons": {
+			"icon": "",
+			"favIcon": "",
+			"phone": "",
+			"phone@2": "",
+			"tablet": "",
+			"tablet@2": ""
+		},
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		}
+	},
+	"sap.ui5": {
+		"flexEnabled": false,
+		"dependencies": {
+			"minUI5Version": "1.152.0",
+			"libs": {
+				"sap.m": {},
+				"sap.ui.core": {}
+			}
+		},
+		"contentDensities": {
+			"compact": true,
+			"cozy": true
+		},
+		"models": {
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "invoiceiqui.i18n.i18n",
+					"supportedLocales": [
+						""
+					]
+				}
+			},
+			"": {
+				"dataSource": "mainService",
+				"preload": true,
+				"settings": {
+					"operationMode": "Server",
+					"autoExpandSelect": true,
+					"earlyRequests": true
+				}
+			}
+		},
+		"resources": {
+			"css": [
+				{
+					"uri": "css/style.css"
+				}
+			]
+		},
+		"routing": {
+			"config": {
+				"routerClass": "sap.m.routing.Router",
+				"controlAggregation": "pages",
+				"controlId": "fcl",
+				"transition": "slide",
+				"type": "View",
+				"viewType": "XML",
+				"path": "invoiceiqui.view",
+				"async": true,
+				"viewPath": "invoiceiqui.view"
+			},
+			"routes": [
+				{
+					"name": "worklist",
+					"pattern": ":?query:",
+					"layout": "OneColumn",
+					"target": [
+						"worklist"
+					]
+				},
+				{
+					"name": "detail",
+					"pattern": "document/{documentId}",
+					"layout": "TwoColumnsMidExpanded",
+					"target": [
+						"worklist",
+						"detail"
+					]
+				},
+				{
+					"name": "preview",
+					"pattern": "document/{documentId}/preview",
+					"layout": "ThreeColumnsMidExpanded",
+					"target": [
+						"worklist",
+						"detail",
+						"preview"
+					]
+				}
+			],
+			"targets": {
+				"worklist": {
+					"id": "worklist",
+					"name": "Worklist",
+					"controlAggregation": "beginColumnPages"
+				},
+				"detail": {
+					"id": "detail",
+					"name": "Detail",
+					"controlAggregation": "midColumnPages"
+				},
+				"preview": {
+					"id": "preview",
+					"name": "Preview",
+					"controlAggregation": "endColumnPages"
+				},
+				"notFound": {
+					"id": "notFound",
+					"name": "NotFound",
+					"controlAggregation": "midColumnPages",
+					"transition": "show"
+				}
+			}
+		},
+		"rootView": {
+			"viewName": "invoiceiqui.view.App",
+			"type": "XML",
+			"id": "App",
+			"async": true
+		},
+		"flexBundle": false
+	},
+	"sap.cloud": {
+		"public": true,
+		"service": "Invoice_IQ"
+	}
+}

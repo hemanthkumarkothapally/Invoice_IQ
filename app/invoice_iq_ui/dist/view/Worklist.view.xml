@@ -1,0 +1,97 @@
+<mvc:View
+    controllerName="invoiceiqui.controller.Worklist"
+    xmlns="sap.m"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core">
+
+    <Page id="worklistPage" showHeader="false" class="iqWlPage">
+        <content>
+
+            <!-- Header -->
+            <HBox renderType="Bare" class="iqWlHeader" alignItems="Center"
+                  justifyContent="SpaceBetween">
+                <HBox renderType="Bare" alignItems="Baseline">
+                    <Title text="{i18n>worklistTitle}" level="H2" class="iqWlTitle" />
+                    <Text text="({counts>/ALL})" class="iqWlHeadCount" />
+                </HBox>
+                <HBox renderType="Bare" alignItems="Center">
+                    <Button icon="sap-icon://refresh" type="Transparent"
+                            tooltip="{i18n>refresh}" press=".onRefresh" />
+                    <Button icon="sap-icon://upload-to-cloud" text="{i18n>upload}"
+                            type="Emphasized" press=".onOpenUpload"
+                            class="sapUiTinyMarginBegin" />
+                </HBox>
+            </HBox>
+
+            <!-- Status tabs with counts -->
+            <IconTabBar id="statusFilter" expandable="false" headerMode="Inline"
+                        backgroundDesign="Transparent" headerBackgroundDesign="Transparent"
+                        select=".onFilterSelect" class="iqWlTabs">
+                <items>
+                    <IconTabFilter key="ALL"          text="{i18n>tabAll}"        count="{counts>/ALL}" />
+                    <IconTabFilter key="PROCESSING"   text="{i18n>tabProcessing}" count="{counts>/PROCESSING}" />
+                    <IconTabFilter key="NEEDS_REVIEW" text="{i18n>tabReview}"     count="{counts>/NEEDS_REVIEW}" />
+                    <IconTabFilter key="MATCHED"      text="{i18n>tabMatched}"    count="{counts>/MATCHED}" />
+                    <IconTabFilter key="FAILED"       text="{i18n>tabFailed}"     count="{counts>/FAILED}" />
+                </items>
+            </IconTabBar>
+
+            <!-- Search -->
+            <HBox renderType="Bare" class="iqWlSearch" alignItems="Center">
+                <SearchField id="invoiceSearch" placeholder="{i18n>searchPlaceholder}"
+                             liveChange=".onSearch" search=".onSearch" class="iqWlSearchField" />
+                <Button icon="sap-icon://filter" type="Transparent"
+                        tooltip="{i18n>sortFilter}" press=".onOpenSort" />
+            </HBox>
+
+            <!-- Invoice list -->
+            <List id="documentList" mode="SingleSelectMaster"
+                  selectionChange=".onSelect" growing="true"
+                  growingThreshold="30" growingScrollToLoad="true"
+                  showSeparators="Inner" class="iqWlList"
+                  items="{ path: '/Documents', parameters: { $orderby: 'uploadedAt desc' } }">
+
+                <noData>
+                    <IllustratedMessage illustrationType="sapIllus-NoEntries"
+                                        title="{i18n>emptyTitle}" description="{i18n>emptyText}">
+                        <additionalContent>
+                            <Button text="{i18n>upload}" type="Emphasized" press=".onOpenUpload" />
+                        </additionalContent>
+                    </IllustratedMessage>
+                </noData>
+
+                <items>
+                    <CustomListItem type="Navigation" press=".onSelect" class="iqWlItem">
+                        <HBox renderType="Bare" class="iqWlRow" alignItems="Center">
+
+                            <core:Icon src="sap-icon://document-text" size="1.125rem"
+                                       class="iqWlDocIcon"
+                                       color="{path: 'status', formatter: '.formatter.statusState'}" />
+
+                            <VBox class="iqWlMain">
+                                <Text maxLines="1" class="iqWlVendor"
+                                      text="{= ${invoice/vendorName} || ${fileName} }" />
+                                <Text maxLines="1" class="iqWlRef"
+                                      text="{= ${invoice/invoiceNumber} || ${i18n>noInvoiceNumber} }" />
+                                <Text class="iqWlDate"
+                                      text="{ path: 'invoice/invoiceDate', type: 'sap.ui.model.odata.type.Date', formatOptions: {style: 'medium'} }" />
+                            </VBox>
+
+                            <VBox class="iqWlAmountBox" alignItems="End">
+                                <Text class="iqWlAmount"
+                                      text="{ path: 'invoice/grossAmount', type: 'sap.ui.model.odata.type.Decimal', constraints: {scale: 2}, formatOptions: {groupingEnabled: true, minFractionDigits: 2, maxFractionDigits: 2} }" />
+                                <Text class="iqWlCurrency" text="{invoice/currency}" />
+                                <ObjectStatus class="iqPill iqWlPill sapUiTinyMarginTop" inverted="true"
+                                              text="{path: 'status', formatter: '.formatter.statusText'}"
+                                              state="{path: 'status', formatter: '.formatter.statusState'}"
+                                              icon="{path: 'status', formatter: '.formatter.statusIcon'}" />
+                            </VBox>
+                        </HBox>
+                    </CustomListItem>
+                </items>
+            </List>
+
+        </content>
+    </Page>
+
+</mvc:View>

@@ -1,0 +1,14 @@
+<mvc:View
+    controllerName="invoiceiqui.controller.App"
+    xmlns:f="sap.f"
+    xmlns:mvc="sap.ui.core.mvc"
+    displayBlock="true"
+    height="100%">
+
+    <f:FlexibleColumnLayout
+        id="fcl"
+        layout="{ui>/layout}"
+        stateChange=".onStateChange"
+        backgroundDesign="Solid" />
+
+</mvc:View>

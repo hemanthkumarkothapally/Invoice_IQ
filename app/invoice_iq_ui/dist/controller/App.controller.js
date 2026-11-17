@@ -1,0 +1,2 @@
+sap.ui.define(["./BaseController"],function(t){"use strict";return t.extend("invoiceiqui.controller.App",{onInit:function(){this.getView().addStyleClass(this.getOwnerComponent().getContentDensityClass());this.getRouter().attachRouteMatched(function(t){const e=t.getParameter("config").layout;if(e)this.setLayout(e)},this)},onStateChange:function(t){if(!t.getParameter("isNavigationArrow"))return;this.setLayout(t.getParameter("layout"))}})});
+//# sourceMappingURL=App.controller.js.map
